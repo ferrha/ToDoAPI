@@ -68,5 +68,51 @@ namespace PerfectChannel.WebApi.Controllers
 
             return CreatedAtAction("PostToDoItem", new { id = toDoItem.ItemId }, toDoItem);
         }
+
+        // PUT: api/task/PutToDoItem/1
+        // Update the status of a task and return the updated item
+        [HttpPut("{id}")]
+        [Route("PutToDoItem/{id}")]
+        public async Task<IActionResult> PutTodoItem(int id)
+        {
+            var toDoItem = await _context.ToDoItems.FindAsync(id);
+
+            if (toDoItem == null)
+            {
+                return BadRequest();
+            }
+
+            if (id != toDoItem.ItemId)
+            {
+                return BadRequest();
+            }
+
+            toDoItem.ItemStatusCompleted = !toDoItem.ItemStatusCompleted; //change status
+            _context.Entry(toDoItem).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TodoItemExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtAction("PutTodoItem", toDoItem);
+        }
+
+        // Method to check if an ID exists
+        private bool TodoItemExists(int id)
+        {
+            return _context.ToDoItems.Any(e => e.ItemId == id);
+        }
     }
 }

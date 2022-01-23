@@ -89,6 +89,45 @@ namespace PerfectChannel.WebApi.Test
             }
         }
 
+        // Add a new to do item and update the status
+        [Test]
+        public void PostToDoItemAndPutToDoItemTest()
+        {
+            // Add the item
+            var client = new HttpClient(Server);
+            var request = createRequest("api/task/PostToDoItem", "application/json", HttpMethod.Post);
+            var content = new ToDoItemModel { ItemName = "Clean my house", ItemDescription = "Clean outside and insede the house" };
+            var stringPayload = JsonConvert.SerializeObject(content);
+            var httpContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
+            request.Content = httpContent;
+
+            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            {
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.IsNotNull(response.Content);
+            }
+
+            // Get the items
+            request = createRequest("api/task/GetToDoItems", "application/json", HttpMethod.Get);
+            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            {
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.IsNotNull(response.Content);
+            }
+
+            // Update the item
+            request = createRequest("api/task/PutToDoItem/1", "application/json", HttpMethod.Put);
+            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            {
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+                Assert.IsNotNull(response.Content);
+            }
+        }
+
+
         private HttpRequestMessage createRequest(string url, string mthv, HttpMethod method)
         {
             var request = new HttpRequestMessage();
