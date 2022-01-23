@@ -1,5 +1,12 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using PerfectChannel.WebApi.Models;
+using Newtonsoft.Json;
 
 namespace PerfectChannel.WebApi.Controllers
 {
@@ -8,6 +15,45 @@ namespace PerfectChannel.WebApi.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        // TODO: to be completed
+        private readonly ToDoContext _context;
+
+        public TaskController(ToDoContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/task/GetToDoItems
+        // Return a group with the completed tasks and another group with pending tasks
+        [HttpGet]
+        [Route("GetToDoItems")]
+        public async Task<ActionResult<IEnumerable<ToDoItemModel>>> GetToDoItems()
+        {
+            var todos = await _context.ToDoItems.ToListAsync();
+
+            if(todos == null)
+            {
+                return Ok();
+            }
+
+            var completed = todos.Select(t => new ToDoItemModel
+            {
+                ItemId = t.ItemId,
+                ItemName = t.ItemName,
+                ItemDescription = t.ItemDescription,
+                ItemStatusCompleted = t.ItemStatusCompleted
+            }).Where(b => b.ItemStatusCompleted);
+
+            var pending = todos.Select(t => new ToDoItemModel
+            {
+                ItemId = t.ItemId,
+                ItemName = t.ItemName,
+                ItemDescription = t.ItemDescription,
+                ItemStatusCompleted = t.ItemStatusCompleted
+            }).Where(b => !b.ItemStatusCompleted);
+
+            var content = JsonConvert.SerializeObject(new { Completed = completed, Pending = pending });
+
+            return Ok(content);
+        }
     }
 }
