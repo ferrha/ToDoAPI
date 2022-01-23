@@ -55,5 +55,18 @@ namespace PerfectChannel.WebApi.Controllers
 
             return Ok(content);
         }
+
+        // POST: api/task/PostToDoItem
+        // Add a new task, pending by default
+        [HttpPost]
+        [Route("PostToDoItem")]
+        public async Task<ActionResult<ToDoItemModel>> PostToDoItem(ToDoItemModel toDoItem)
+        {
+            //toDoItem.ItemStatusCompleted = false; // pending by default
+            _context.ToDoItems.Add(toDoItem);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("PostToDoItem", new { id = toDoItem.ItemId }, toDoItem);
+        }
     }
 }
