@@ -23,7 +23,7 @@ namespace PerfectChannel.WebApi
         {
             services.AddDbContext<ToDoContext>(opt => opt.UseInMemoryDatabase("ToDoList"));
             services.AddControllers();
-            services.AddMvc().AddApplicationPart(typeof(Startup).Assembly);
+            //services.AddMvc().AddApplicationPart(typeof(Startup).Assembly);
 
             ConfigureCors(services);
         }
