@@ -135,5 +135,25 @@ namespace PerfectChannel.WebApi.Test
             Assert.AreEqual(201, responsePut.StatusCode);
             //Assert.IsNotNull(response.Content);
         }
+
+        // Update a non existing id
+        [Test]
+        public void PutToDoItemNoExistTest()
+        {
+            var contextOptions = new DbContextOptionsBuilder<ToDoContext>()
+                .UseInMemoryDatabase("ToDoList")
+                .Options;
+
+            using var context = new ToDoContext(contextOptions);
+
+            var controller = new TaskController(context);
+
+            // Update the item that not exists
+            var resultPut = controller.PutTodoItem(100);
+            var responsePut = (BadRequestResult)resultPut.Result.Result;
+
+            Assert.IsNotNull(responsePut);
+            Assert.AreEqual(400, responsePut.StatusCode);
+        }
     }
 }
