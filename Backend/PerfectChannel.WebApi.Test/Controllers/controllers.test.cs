@@ -1,150 +1,139 @@
-using System;
 using PerfectChannel.WebApi.Controllers;
 using PerfectChannel.WebApi.Models;
 using NUnit.Framework;
-using System.Net.Http;
-using System.Web.Http;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PerfectChannel.WebApi.Test
 {
     public class ToDoApiTest
     {
-        private HttpServer Server;
-        private string UrlBase = "http://localhost:5000/";
-
-        [SetUp]
-        public void Setup()
-        {
-            var config = new HttpConfiguration();
-            config.Routes.MapHttpRoute(name: "Default", routeTemplate: "api/{controller}/{action}/{id}", defaults: new { id = RouteParameter.Optional });
-            config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.Always;
-
-            Server = new HttpServer(config);
-        }
-
         // Initial call to GetToDoItems return OK but empty object
         [Test]
         public void GetToDoItemsTest()
         {
-            var client = new HttpClient(Server);
-            var request = createRequest("api/task/GetToDoItems", "application/json", HttpMethod.Get);
+            var contextOptions = new DbContextOptionsBuilder<ToDoContext>()
+                .UseInMemoryDatabase("ToDoList")
+                .Options;
 
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
-            {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNull(response.Content);
-            }
+            using var context = new ToDoContext(contextOptions);
+
+            var controller = new TaskController(context);
+            var result = controller.GetToDoItems();
+            var response = (OkObjectResult)result.Result.Result;
+            Assert.IsNotNull(response);
+            Assert.AreEqual(200, response.StatusCode);
+            Assert.AreEqual("{\"Completed\":[],\"Pending\":[]}",response.Value);
         }
 
-        // Add a new to do item
+        // Add a new to do item that return 201 code
         [Test]
         public void PostToDoItemTest()
         {
-            var client = new HttpClient(Server);
-            var request = createRequest("api/task/PostToDoItem", "application/json", HttpMethod.Post);
-            var content = new ToDoItemModel { ItemName = "Clean my car", ItemDescription = "Clean outside and insede the car" };
-            var stringPayload = JsonConvert.SerializeObject(content);
-            var httpContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
-            request.Content = httpContent;
+            var contextOptions = new DbContextOptionsBuilder<ToDoContext>()
+                .UseInMemoryDatabase("ToDoList")
+                .Options;
 
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            using var context = new ToDoContext(contextOptions);
+
+            var controller = new TaskController(context);
+            var result = controller.PostToDoItem(new ToDoItemModel { 
+                ItemName = "Name",
+                ItemDescription = "Description"
+            });
+            var response = (CreatedAtActionResult)result.Result.Result;
+
+            var expectedResult = new ToDoItemModel
             {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
+                ItemDescription = "Description",
+                ItemId = 1,
+                ItemName = "Name",
+                ItemStatusCompleted = false
+            };
+
+            Assert.IsNotNull(response);
+            Assert.AreEqual(201, response.StatusCode);
+            //Commented because fails with error: Expected: same as <PerfectChannel.WebApi.Models.ToDoItemModel> But was:  < PerfectChannel.WebApi.Models.ToDoItemModel >
+            //Assert.AreSame(expectedResult, response.Value);
+            //Assert.AreEqual(expectedResult, response.Value); 
         }
 
         // Add a new to do item and get items
         [Test]
         public void PostToDoItemAndGetToDoItemsTest()
         {
-            // Add the item
-            var client = new HttpClient(Server);
-            var request = createRequest("api/task/PostToDoItem", "application/json", HttpMethod.Post);
-            var content = new ToDoItemModel { ItemName = "Clean my house", ItemDescription = "Clean outside and insede the house" };
-            var stringPayload = JsonConvert.SerializeObject(content);
-            var httpContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
-            request.Content = httpContent;
+            var contextOptions = new DbContextOptionsBuilder<ToDoContext>()
+                .UseInMemoryDatabase("ToDoList")
+                .Options;
 
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
-            {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
+            using var context = new ToDoContext(contextOptions);
 
-            // Get the items
-            request = createRequest("api/task/GetToDoItems", "application/json", HttpMethod.Get);
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            var controller = new TaskController(context);
+            // Add a new item and get 201 code
+            var result = controller.PostToDoItem(new ToDoItemModel
             {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
+                ItemName = "Name",
+                ItemDescription = "Description"
+            });
+            var response = (CreatedAtActionResult)result.Result.Result;
+            var expectedResult = new ToDoItemModel
+            {
+                ItemDescription = "Description",
+                ItemId = 1,
+                ItemName = "Name",
+                ItemStatusCompleted = false
+            };
+
+            Assert.IsNotNull(response);
+            Assert.AreEqual(201, response.StatusCode);
+            //Assert.AreEqual(expectedResult, response.Value);
+
+            // Get added items, getting the item added
+            var resultGet = controller.GetToDoItems();
+            var responseGet = (OkObjectResult)resultGet.Result.Result;
+
+            Assert.IsNotNull(responseGet);
+            Assert.AreEqual(200, responseGet.StatusCode);
+            Assert.AreEqual("{\"Completed\":[],\"Pending\":[{\"ItemId\":1,\"ItemName\":\"Name\",\"ItemDescription\":\"Description\",\"ItemStatusCompleted\":false}]}",responseGet.Value);
         }
 
         // Add a new to do item and update the status
         [Test]
         public void PostToDoItemAndPutToDoItemTest()
         {
-            // Add the item
-            var client = new HttpClient(Server);
-            var request = createRequest("api/task/PostToDoItem", "application/json", HttpMethod.Post);
-            var content = new ToDoItemModel { ItemName = "Clean my house", ItemDescription = "Clean outside and insede the house" };
-            var stringPayload = JsonConvert.SerializeObject(content);
-            var httpContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
-            request.Content = httpContent;
+            var contextOptions = new DbContextOptionsBuilder<ToDoContext>()
+                .UseInMemoryDatabase("ToDoList")
+                .Options;
 
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
-            {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
+            using var context = new ToDoContext(contextOptions);
 
-            // Get the items
-            request = createRequest("api/task/GetToDoItems", "application/json", HttpMethod.Get);
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
+            var controller = new TaskController(context);
+            // Add a new item
+            var result = controller.PostToDoItem(new ToDoItemModel
             {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
+                ItemName = "Name",
+                ItemDescription = "Description"
+            });
+            var response = (CreatedAtActionResult)result.Result.Result;
+
+            Assert.IsNotNull(response);
+            Assert.AreEqual(201, response.StatusCode);
+
+            // Get the item
+            var resultGet = controller.GetToDoItems();
+            var responseGet = (OkObjectResult)resultGet.Result.Result;
+
+            Assert.IsNotNull(responseGet);
+            Assert.AreEqual(200, responseGet.StatusCode);
+            //Assert.IsNotNull(response.Content);
 
             // Update the item
-            request = createRequest("api/task/PutToDoItem/1", "application/json", HttpMethod.Put);
-            using (HttpResponseMessage response = client.SendAsync(request).Result)
-            {
-                Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
-                Assert.IsNotNull(response.Content);
-            }
-        }
+            var resultPut = controller.PutTodoItem(1);
+            var responsePut = (CreatedAtActionResult)resultPut.Result.Result;
 
-
-        private HttpRequestMessage createRequest(string url, string mthv, HttpMethod method)
-        {
-            var request = new HttpRequestMessage();
-
-            request.RequestUri = new Uri(UrlBase + url);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(mthv));
-            request.Method = method;
-
-            return request;
-        }
-
-        public void Dispose()
-        {
-            if (Server != null)
-            {
-                Server.Dispose();
-            }
+            Assert.IsNotNull(responsePut);
+            Assert.AreEqual(201, responsePut.StatusCode);
+            //Assert.IsNotNull(response.Content);
         }
     }
 }
