@@ -30,11 +30,6 @@ namespace PerfectChannel.WebApi.Controllers
         {
             var todos = await _context.ToDoItems.ToListAsync();
 
-            if(todos == null)
-            {
-                return Ok();
-            }
-
             var completed = todos.Select(t => new ToDoItemModel
             {
                 ItemId = t.ItemId,
@@ -73,7 +68,7 @@ namespace PerfectChannel.WebApi.Controllers
         // Update the status of a task and return the updated item
         [HttpPut("{id}")]
         [Route("PutToDoItem/{id}")]
-        public async Task<IActionResult> PutTodoItem(int id)
+        public async Task<ActionResult<ToDoItemModel>> PutTodoItem(int id)
         {
             var toDoItem = await _context.ToDoItems.FindAsync(id);
 
