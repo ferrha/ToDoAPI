@@ -1,0 +1,77 @@
+openapi: 3.0.1
+info:
+  title: PerfectChannel WebApi
+  description: 'PerfectChannel WebApi documentation'
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+tags:
+- name: api
+  description: To Do list tasks
+paths:
+  /task:
+    get:
+        tags:
+        - task
+        summary: Get to do list tasks
+        operationId: GetToDoItems
+        responses:
+        200:
+            description: Return to do list
+            content: {}
+
+    post:
+      tags:
+      - task
+      summary: Create a new task
+      operationId: PostToDoItem
+      requestBody:
+        description: Task object that needs to be added to the API
+        content:
+          application/json:
+            schema:
+              $ref: '#/ToDoItemModel'
+      responses:
+        201:
+          description: Task has been created
+          content: {}
+    
+  /task/{playerId}:
+    put:
+      tags:
+      - task
+      summary: Update a task to update their status
+      operationId: PutTodoItem
+      parameters:
+        - in: path
+          name: ItemId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Task object that needs to be added to the API
+        content:
+          application/json:
+            schema:
+              $ref: '#/ToDoItemModel'
+      responses:
+        201:
+          description: Task information has been updated
+          content: {}
+        404:
+          description: Task does not exist
+          content: {}
+
+components:
+  schemas:
+    ToDoItemModel:
+      type: object
+      properties:
+        ItemId:
+          type: integer
+        ItemName:
+          type: string
+        ItemDescription:
+          type: string
+        ItemStatusCompleted:
+          type: bool
