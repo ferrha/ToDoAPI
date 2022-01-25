@@ -22,7 +22,7 @@ namespace PerfectChannel.WebApi.Controllers
             _context = context;
         }
 
-        // GET: api/task/GetToDoItems
+        // GET: api/task
         // Return a group with the completed tasks and another group with pending tasks
         [HttpGet]
        // [Route("GetToDoItems")]
@@ -52,7 +52,7 @@ namespace PerfectChannel.WebApi.Controllers
             return Ok(content);
         }
 
-        // POST: api/task/PostToDoItem
+        // POST: api/task
         // Add a new task, pending by default
         [HttpPost]
         //[Route("PostToDoItem")]
@@ -64,22 +64,22 @@ namespace PerfectChannel.WebApi.Controllers
             return CreatedAtAction("PostToDoItem", new { id = toDoItem.ItemId }, toDoItem);
         }
 
-        // PUT: api/task/PutToDoItem/1
+        // PUT: api/task/1
         // Update the status of a task and return the updated item
         [HttpPut("{id}")]
         //[Route("PutToDoItem/{id}")]
-        public async Task<ActionResult<ToDoItemModel>> PutTodoItem(int id)
+        public async Task<ActionResult<ToDoItemModel>> PutToDoItem(int id)
         {
             var toDoItem = await _context.ToDoItems.FindAsync(id);
 
             if (toDoItem == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             if (id != toDoItem.ItemId)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             // Change the status to the oposite status of completion

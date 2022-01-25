@@ -128,7 +128,7 @@ namespace PerfectChannel.WebApi.Test
             //Assert.IsNotNull(response.Content);
 
             // Update the item
-            var resultPut = controller.PutTodoItem(1);
+            var resultPut = controller.PutToDoItem(1);
             var responsePut = (CreatedAtActionResult)resultPut.Result.Result;
 
             Assert.IsNotNull(responsePut);
@@ -149,11 +149,11 @@ namespace PerfectChannel.WebApi.Test
             var controller = new TaskController(context);
 
             // Update the item that not exists
-            var resultPut = controller.PutTodoItem(100);
-            var responsePut = (BadRequestResult)resultPut.Result.Result;
+            var resultPut = controller.PutToDoItem(100);
+            var responsePut = (NotFoundResult)resultPut.Result.Result;
 
             Assert.IsNotNull(responsePut);
-            Assert.AreEqual(400, responsePut.StatusCode);
+            Assert.AreEqual(404, responsePut.StatusCode);
         }
     }
 }
