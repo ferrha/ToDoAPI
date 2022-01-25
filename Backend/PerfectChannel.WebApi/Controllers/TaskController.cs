@@ -25,7 +25,7 @@ namespace PerfectChannel.WebApi.Controllers
         // GET: api/task/GetToDoItems
         // Return a group with the completed tasks and another group with pending tasks
         [HttpGet]
-        [Route("GetToDoItems")]
+       // [Route("GetToDoItems")]
         public async Task<ActionResult<IEnumerable<ToDoItemModel>>> GetToDoItems()
         {
             var todos = await _context.ToDoItems.ToListAsync();
@@ -54,7 +54,7 @@ namespace PerfectChannel.WebApi.Controllers
         // POST: api/task/PostToDoItem
         // Add a new task, pending by default
         [HttpPost]
-        [Route("PostToDoItem")]
+        //[Route("PostToDoItem")]
         public async Task<ActionResult<ToDoItemModel>> PostToDoItem(ToDoItemModel toDoItem)
         {
             //toDoItem.ItemStatusCompleted = false; // pending by default
@@ -67,7 +67,7 @@ namespace PerfectChannel.WebApi.Controllers
         // PUT: api/task/PutToDoItem/1
         // Update the status of a task and return the updated item
         [HttpPut("{id}")]
-        [Route("PutToDoItem/{id}")]
+        //[Route("PutToDoItem/{id}")]
         public async Task<ActionResult<ToDoItemModel>> PutTodoItem(int id)
         {
             var toDoItem = await _context.ToDoItems.FindAsync(id);
