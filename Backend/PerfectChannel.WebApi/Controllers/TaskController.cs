@@ -46,6 +46,7 @@ namespace PerfectChannel.WebApi.Controllers
                 ItemStatusCompleted = t.ItemStatusCompleted
             }).Where(b => !b.ItemStatusCompleted);
 
+            // Creation of the JSON object with completed and pending sections depending on the status of the tasks.
             var content = JsonConvert.SerializeObject(new { Completed = completed, Pending = pending });
 
             return Ok(content);
@@ -57,7 +58,6 @@ namespace PerfectChannel.WebApi.Controllers
         //[Route("PostToDoItem")]
         public async Task<ActionResult<ToDoItemModel>> PostToDoItem(ToDoItemModel toDoItem)
         {
-            //toDoItem.ItemStatusCompleted = false; // pending by default
             _context.ToDoItems.Add(toDoItem);
             await _context.SaveChangesAsync();
 
@@ -82,7 +82,8 @@ namespace PerfectChannel.WebApi.Controllers
                 return BadRequest();
             }
 
-            toDoItem.ItemStatusCompleted = !toDoItem.ItemStatusCompleted; //change status
+            // Change the status to the oposite status of completion
+            toDoItem.ItemStatusCompleted = !toDoItem.ItemStatusCompleted;
             _context.Entry(toDoItem).State = EntityState.Modified;
 
             try
